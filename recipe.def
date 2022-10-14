@@ -10,12 +10,13 @@ From: debian:buster
 %files
         automake-1.16.tar.gz         /opt
         openmpi-2.0.4.tar.gz         /opt
+	libpng-1.2.50.tar.gz	     /opt
         hdf5-1.8.20.tar.gz           /opt
         netcdf-c-4.6.0.tar.gz        /opt
         netcdf-fortran-4.4.4.tar.gz  /opt
         cmake-3.17.1.tar.gz          /opt
         jasper-1.900.1.tar.gz        /opt
-        blitz-0.10.tar.gz             /opt
+        blitz-0.10.tar.gz            /opt
         eccodes-2.19.1-Source.tar.gz /opt
         
 
