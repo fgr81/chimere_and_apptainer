@@ -1,0 +1,126 @@
+BootStrap: library
+From: debian:buster
+
+%setup
+        _pwd=$(pwd)
+        mkdir -p ${_pwd}/tmp
+        export SINGULARITY_TMPDIR=${_pwd}/tmp
+
+
+%files
+        automake-1.16.tar.gz         /opt
+        openmpi-2.0.4.tar.gz         /opt
+        hdf5-1.8.20.tar.gz           /opt
+        netcdf-c-4.6.0.tar.gz        /opt
+        netcdf-fortran-4.4.4.tar.gz  /opt
+        cmake-3.17.1.tar.gz          /opt
+        jasper-1.900.1.tar.gz        /opt
+        blitz-0.10.tar.gz             /opt
+        eccodes-2.17.0-Source.tar.gz /opt
+        
+
+%environment
+%runscript
+%startscript
+%test
+%labels
+%help
+  author: f.grasso@isac.cnr.it
+ 
+%post
+        echo "***** Hello from inside the container *****"
+        apt-get update
+        apt-get install -y texinfo vim dialog locales libtool autoconf git flex gawk
+        apt-get install -y build-essential gfortran g++ zlib1g-dev csh libcurl4-gnutls-dev libssl-dev
+        apt-get install -y wget subversion nco cdo locate python dos2unix zip unzip procps
+
+
+
+        cd /opt
+        tar xzvf automake-1.16.tar.gz
+        rm automake-1.16.tar.gz
+        cd /opt/automake-1.16
+        sed -i 's:/\\\${:/\\\$\\{:' bin/automake.in
+        autoreconf -i -f
+        ./configure --prefix=/usr/local --docdir=/usr/share/doc/automake-1.16
+        make
+        make install
+
+        cd /opt
+        tar xzvf openmpi-2.0.4.tar.gz
+        cd /opt/openmpi-2.0.4
+        CFLAGS=-m64 CXXFLAGS=-m64 FCFLAGS=-m64 ./configure --prefix=/usr/local --enable-static
+        make all install
+        
+        cd /opt
+        tar xzvf libpng-1.2.50.tar.gz
+        cd /opt/libpng-1.2.50
+        CC=/usr/local/bin/mpicc ./configure --prefix=/usr/local
+        make
+        make install
+        
+        cd /opt
+        tar xzvf jasper-1.900.1.tar.gz
+        cd /opt/jasper-1.900.1
+        CC=/usr/local/bin/mpicc ./configure --prefix=/usr/local
+        make
+        make install
+        
+        cd /opt
+        tar xvf hdf5-1.8.20.tar
+        cd /opt/hdf5-1.8.20
+        ./configure CC=/usr/local/bin/mpicc \
+        FC=/usr/local/bin/mpif90 \
+        F90=/usr/local/bin/mpif90 \
+        FFLAGS="-I/usr/local/include"  \        
+        CFLAGS="-I/usr/local/include" \
+        CPPFLAGS="-I/usr/local/include" \
+        --enable-parallel --prefix=/usr/local --enable-fortran
+        make
+        make install
+        
+        cd /opt
+        tar xvf netcdf-c-4.6.0.tar.gz
+        cd netcdf-c-4.6.0
+        ./configure CC=/usr/local/bin/mpicc \
+        LDFLAGS=-L/usr/local/lib \
+        CPPFLAGS=-I/usr/local/include \
+        --prefix=/usr/local --disable-dap-remote-tests
+        make check install
+        
+        cd /opt
+        tar xzvf netcdf-fortran-4.4.4.tar.gz
+        cd /opt/netcdf-fortran-4.4.4
+        CPPFLAGS="-I/usr/local/include -DgFortran" \
+        LDFLAGS=-L/usr/local/lib \
+        FC=mpif90 \
+        F77=mpif90 \
+        CC=mpicc \
+        F77FLAGS="-O3 -fno-second-underscore" \
+        FCFLAGS="-O3 -fno-second-underscore" \
+        FFLAGS="-O3 -fno-second-underscore" \
+        ./configure --prefix=/usr/local --enable-shared
+        make check install
+        
+        cd /opt
+        tar xzvf cmake-3.17.1.tar.gz
+        cd cmake-3.17.1
+        ./bootstrap
+        make
+        make install
+
+        cd /opt
+        tar xzvf blitz-0.10.tar.gz
+        cd /opt/blitz-0.10
+        cmake . -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx
+        make lib
+        make install
+
+        cd /opt
+        tar xzvf eccodes-2.19.1-Source.tar.gz
+        mkdir build
+        cd build
+        cmake ../eccodes-2.19.1-Source
+        make
+        ctest
+        make install
