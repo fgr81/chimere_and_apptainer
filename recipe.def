@@ -1,5 +1,5 @@
 BootStrap: library
-From: debian:buster
+From: debian:9
 
 %setup
         _pwd=$(pwd)
@@ -7,16 +7,14 @@ From: debian:buster
         export SINGULARITY_TMPDIR=${_pwd}/tmp
 
 %files
-        automake-1.16.tar.gz         /opt
         openmpi-2.0.4.tar.gz         /opt
 	libpng-1.2.50.tar.gz	     /opt
         hdf5-1.8.20.tar.gz           /opt
         netcdf-c-4.6.0.tar.gz        /opt
         netcdf-fortran-4.4.4.tar.gz  /opt
-        cmake-3.17.1.tar.gz          /opt
         jasper-1.900.1.tar.gz        /opt
-        blitz-master.tgz	     /opt
-        eccodes-2.19.1-Source.tar.gz /opt
+        blitz-0.10.tar.gz     	     /opt
+        eccodes-2.8.0-Source.tar.gz  /opt
         
 
 %environment
@@ -29,23 +27,15 @@ From: debian:buster
  
 %post
         echo "***** Hello from inside the container *****"
+
+	#echo "deb http://archive.debian.org/debian wheezy main" > /etc/apt/sources.list
+	#echo "deb http://archive.debian.org/debian-archive/debian-security/ wheezy updates/main" >> /etc/apt/sources.list
+	#echo "deb http://archive.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list
+	
         apt-get update
-        apt-get install -y texinfo vim dialog locales libtool autoconf git flex gawk
-        apt-get install -y build-essential gfortran g++ zlib1g-dev csh libcurl4-gnutls-dev libssl-dev
-        apt-get install -y wget subversion nco cdo locate python dos2unix zip unzip procps
-
-
-
-        cd /opt
-        tar xzvf automake-1.16.tar.gz
-        rm automake-1.16.tar.gz
-        cd /opt/automake-1.16
-        sed -i 's:/\\\${:/\\\$\\{:' bin/automake.in
-        autoreconf -i -f
-        ./configure --prefix=/usr/local --docdir=/usr/share/doc/automake-1.16
-        make
-        make install
-	ldconfig
+        apt-get install -y --force-yes texinfo vim dialog locales libtool autoconf git flex gawk
+        apt-get install -y --force-yes build-essential gfortran g++ zlib1g-dev csh libcurl4-gnutls-dev libssl-dev
+        apt-get install -y --force-yes wget subversion nco cdo locate python dos2unix zip unzip procps
 
         cd /opt
         tar xzvf openmpi-2.0.4.tar.gz
@@ -81,7 +71,7 @@ From: debian:buster
         cd /opt
         tar xvf netcdf-c-4.6.0.tar.gz
         cd netcdf-c-4.6.0
-        CC=/usr/local/bin/mpicc LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include ./configure --prefix=/usr/local --disable-dap-remote-tests
+        CC=/usr/local/bin/mpicc LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include ./configure --prefix=/usr/local --disable-dap-remote-tests --enable-parallel-tests
         make check install
 	ldconfig
  
@@ -91,28 +81,26 @@ From: debian:buster
         CPPFLAGS="-I/usr/local/include -DgFortran" LDFLAGS=-L/usr/local/lib FC=mpif90 F77=mpif90 CC=mpicc F77FLAGS="-O3 -fno-second-underscore" FCFLAGS="-O3 -fno-second-underscore" FFLAGS="-O3 -fno-second-underscore" ./configure --prefix=/usr/local --enable-shared
         make check install
 	ldconfig
-        
-        cd /opt
-        tar xzvf cmake-3.17.1.tar.gz
-        cd cmake-3.17.1
-        ./bootstrap
-        make
-        make install
-	ldconfig
+
+	apt-get install -y --force-yes cmake
+	# apt-get install -y --force-yes cmake/wheezy-backports
 
         cd /opt
-	tar xzvf blitz-master.tgz
-	cd blitz-master
-        cmake . -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx
+	tar xzvf blitz-0.10.tar.gz
+	cd blitz-0.10
+	./configure --prefix=/usr/local
         make lib
         make install
 	ldconfig
 
+	apt-get install -y python-dev
+
         cd /opt
-        tar xzvf eccodes-2.19.1-Source.tar.gz
+        tar xzvf eccodes-2.8.0-Source.tar.gz
+	cd eccodes-2.8.0-Source
         mkdir build
         cd build
-        cmake ../eccodes-2.19.1-Source
+        cmake ../
         make
         ctest
         make install
