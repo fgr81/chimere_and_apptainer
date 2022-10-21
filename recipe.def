@@ -71,7 +71,7 @@ From: debian:9
         cd /opt
         tar xvf netcdf-c-4.6.0.tar.gz
         cd netcdf-c-4.6.0
-        CC=/usr/local/bin/mpicc LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include ./configure --prefix=/usr/local --disable-dap-remote-tests --enable-parallel-tests
+        CC=/usr/local/bin/mpicc LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include ./configure --prefix=/usr/local --disable-dap-remote-tests
         make check install
 	ldconfig
  
